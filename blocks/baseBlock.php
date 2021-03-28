@@ -9,6 +9,7 @@
 				<li><a href="backend.php?ctr=list">图书列表</a></li>
 				<li><a href="backend.php?ctr=add">添加图书</a></li>
 				<li><a href="backend.php?ctr=borrow">借阅管理</a></li>
+                <li><a href="backend.php?ctr=rate">评价管理</a></li>
 				<li><a href="backend.php?ctr=users">用户管理</a></li>
 				<li><a href="backend.php?ctr=category">分类管理</a></li>
 				<?php if($command == "update"):?>

@@ -79,6 +79,9 @@
                         <div class="media-body">
                             <h5 class="media-heading"><?= $v['content'] ?></h5>
                         </div>
+                        <div class="media-left">
+                            <h5 class="media-heading"><?= $v['created'] ?></h5>
+                        </div>
                     </div>
                     <hr/>
                 <?php endforeach; ?>

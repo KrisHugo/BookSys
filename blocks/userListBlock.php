@@ -2,6 +2,7 @@
 <ul>
 	<li><a href="<?='info.php?id='.$_SESSION['account']['user_id']?>">个人信息</a></li>
 	<li><a href="<?='userBorrow.php?id='.$_SESSION['account']['user_id']?>">我的借阅</a></li>
+    <li><a href="<?='userRate.php?id='.$_SESSION['account']['user_id']?>">我的评价</a></li>
 	<?php if ($pageType=='user' && $_SESSION['account']['user_authority'] == 'admin'):?>
 	<li><a href="backend.php">转入后台</a>
 	<?php elseif ($pageType=='admin'):?>

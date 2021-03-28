@@ -6,6 +6,7 @@ return [
         'add'=>'添加图书',
         'update'=>'修改图书',
         'borrow'=>'借阅记录',
+        'rate'=>'评价记录',
         'users'=>'用户管理',
         'category'=>'图书分类',
     ],

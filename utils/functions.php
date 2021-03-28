@@ -225,16 +225,48 @@ function getColleges(mysqli $conn)
     return $colleges;
 }
 
-/**
- * 初始化QuerySession,使分页实现
- * @param string $userId
+/***
+ * 仅限用于borrow和rate两个query, 未来会找到更加通用的模组
+ * @param $config
+ * @param $userId
+ * @param $query
+ * @param $after
+ * @param $before
+ * @param $status
  */
-function initiateBorrowQuerySessions($userId)
-{
-    $_SESSION['borrow']["$userId"]['query'] = '';
-    $_SESSION['borrow']["$userId"]['borrowAfter'] = '';
-    $_SESSION['borrow']["$userId"]['borrowBefore'] = '';
-    $_SESSION['borrow']["$userId"]['status'] = '';
+function configQuerySession($config, $userId, &$query, &$after, &$before, &$status){
+    /* 以下内容为查询板块的缓存控制 */
+    /* 评价缓存需要储存以下几个数据: 关键字, 某时间之前创建, 某时间之后创建, 状态 */
+    /* 初始化Session以及设定Session */
+    if (empty($_SESSION[$config]["$userId"]['query']) || !empty($_GET['reset'])){
+        $_SESSION[$config]["$userId"]['query'] = '';
+        $_SESSION[$config]["$userId"]['after'] = '';
+        $_SESSION[$config]["$userId"]['before'] = '';
+        $_SESSION[$config]["$userId"]['status'] = '';
+    }
+    /* 仅在发送了POST请求后才这么做 */
+    if (isset($_GET['query'])) {
+        $_SESSION[$config]["$userId"]['query'] =  (!empty($_POST['query']) ? $_POST['query'] : '');
+        $_SESSION[$config]["$userId"]['after'] = (!empty($_POST['after']) ? $_POST['after'] : '');
+        $_SESSION[$config]["$userId"]['before'] = (!empty($_POST['before']) ? $_POST['before'] : '');
+        $_SESSION[$config]["$userId"]['status'] = (!empty($_POST['status']) ? $_POST['status'] : '');
+    }
+    $query = $_SESSION[$config]["$userId"]['query'];
+    $after = $_SESSION[$config]["$userId"]['after'];
+    $before = $_SESSION[$config]["$userId"]['before'];
+    $status = $_SESSION[$config]["$userId"]['status'];
+}
+
+function bookQueryByKeyword($conn, $query){
+    $where = "";
+    //通过输入值查询是否是book.
+    $bookResult = $conn->query("SELECT * FROM book_info WHERE name LIKE '%" . $query . "%'");
+    if ($bookResult != false) {
+        $bookIds = mysqli_fetch_all($bookResult, MYSQLI_ASSOC);
+        $bookIds = getArrays($bookIds, "id");
+        $where = (!empty($bookIds) ? "OR bookId IN (" . implode(",", $bookIds) . ") " : "");
+    }
+    return $where;
 }
 
 /**
@@ -252,8 +284,8 @@ function initiateBorrowQuerySessions($userId)
 function getBorrows($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 2592000)
 {
     $query = $_SESSION['borrow']["$userId"]['query'];
-    $borrowAfter = $_SESSION['borrow']["$userId"]['borrowAfter'];
-    $borrowBefore = $_SESSION['borrow']["$userId"]['borrowBefore'];
+    $after = $_SESSION['borrow']["$userId"]['after'];
+    $before = $_SESSION['borrow']["$userId"]['before'];
     $status = $_SESSION['borrow']["$userId"]['status'];
 
     //建立查询语句
@@ -268,12 +300,13 @@ function getBorrows($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 
             $where .= (!empty($codes) ? "OR uniqueCode IN (" . implode(",", $codes) . ") " : "");
         }
         //通过输入值查询是否是book.
-        $bookResult = $conn->query("SELECT * FROM book_info WHERE name LIKE '%" . $query . "%'");
-        if ($bookResult != false) {
-            $bookIds = mysqli_fetch_all($bookResult, MYSQLI_ASSOC);
-            $bookIds = getArrays($bookIds, "id");
-            $where .= (!empty($bookIds) ? "OR bookId IN (" . implode(",", $bookIds) . ") " : "");
-        }
+        $where .= bookQueryByKeyword($conn, $query);
+//        $bookResult = $conn->query("SELECT * FROM book_info WHERE name LIKE '%" . $query . "%'");
+//        if ($bookResult != false) {
+//            $bookIds = mysqli_fetch_all($bookResult, MYSQLI_ASSOC);
+//            $bookIds = getArrays($bookIds, "id");
+//            $where .= (!empty($bookIds) ? "OR bookId IN (" . implode(",", $bookIds) . ") " : "");
+//        }
         if ($userId == -1) {
             //通过输入值查询是否是user.
             $userResult = $conn->query("SELECT * FROM reader WHERE name LIKE '%" . $query . "%'");
@@ -285,11 +318,11 @@ function getBorrows($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 
         }
         $where .= ")";
     }
-    if (!empty($borrowAfter)) {
-        $where .= " AND borrowDate >= '" . $borrowAfter . "'";
+    if (!empty($after)) {
+        $where .= " AND borrowDate >= '" . $after . "'";
     }
-    if (!empty($borrowBefore)) {
-        $where .= " AND borrowDate <= '" . $borrowBefore . "'";
+    if (!empty($before)) {
+        $where .= " AND borrowDate <= '" . $before . "'";
     }
     //通过输入值查询期限
     if (!empty($status)) {
@@ -317,6 +350,77 @@ function getBorrows($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 
     $maxPage = max(1, ceil($pageInfo['pages']));
 
     return $borrows;
+}
+
+/***
+ * @param $conn
+ * @param $userId
+ * @param $page
+ * @param $pageSize
+ * @param $maxPage
+ * @param int $defaultTime
+ * @return array
+ */
+function getRates($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 2592000){
+    $query = $_SESSION['rate']["$userId"]['query'];
+    $after = $_SESSION['rate']["$userId"]['after'];
+    $before = $_SESSION['rate']["$userId"]['before'];
+    $status = $_SESSION['rate']["$userId"]['status'];
+
+    //建立查询语句
+    //通过输入值查询是否是编号
+    $where = ($userId == -1) ? "WHERE 1 = 1 " : "WHERE userId =" . $userId;
+    if (!empty($query)) {
+        $where .= " AND ( 1 = 0 ";
+        //通过输入值查询是否是bookName
+        $where .= bookQueryByKeyword($conn, $query);
+        //通过输入值查询是否是content
+        $rateResult = $conn->query("SELECT * FROM book_rate WHERE content LIKE '%" . $query . "%'");
+        if ($rateResult != false) {
+            $rateIds = mysqli_fetch_all($rateResult, MYSQLI_ASSOC);
+            $rateIds = getArrays($rateIds, "id");
+            $where .= (!empty($rateIds) ? "OR id IN (" . implode(",", $rateIds) . ") " : "");
+        }
+        if ($userId == -1) {
+            //通过输入值查询是否是user.
+            $userResult = $conn->query("SELECT * FROM reader WHERE name LIKE '%" . $query . "%'");
+            if ($userResult != false) {
+                $userIds = mysqli_fetch_all($userResult, MYSQLI_ASSOC);
+                $userIds = getArrays($userIds, "id");
+                $where .= (!empty($userIds) ? "OR userId IN (" . implode(",", $userIds) . ") " : "");
+            }
+        }
+        $where .= ")";
+    }
+    if (!empty($after)) {
+        $where .= " AND created >= '" . $after . "'";
+    }
+    if (!empty($before)) {
+        $where .= " AND created <= '" . $before . "'";
+    }
+    //通过输入值查询期限
+    if (!empty($status)) {
+        switch ($status) {
+            case 'normal':
+                $where .= " AND status = 'normal'";
+                break;
+            case 'verifying':
+                $where .= " AND status = 'verifying'";
+                break;
+            case 'blocked':
+                $where .= " AND status = 'blocked'";
+                break;
+        }
+    }
+    $sql = "SELECT * FROM book_rate $where LIMIT " . (($page - 1) * $pageSize) .", $pageSize;";
+    $rateResult = $conn->query($sql);
+    $rates = mysqli_fetch_all($rateResult, MYSQLI_ASSOC);
+
+    $pageResult = $conn->query("SELECT (COUNT(1) / " . $pageSize . ") `pages` FROM book_rate " . $where);
+    $pageInfo = mysqli_fetch_assoc($pageResult);
+    $maxPage = max(1, ceil($pageInfo['pages']));
+
+    return $rates;
 }
 
 /**

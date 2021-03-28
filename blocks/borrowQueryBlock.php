@@ -3,7 +3,7 @@
 	<form action="<?= ($userId == -1) ?'backend.php?ctr=borrow&query=true':'userBorrow.php?query=true&id='.$userId?>" method="post">
 		<div class="row gtr-uniform gtr-50">
 			<div class="col-12">
-				<input type="text" name="query" id="query" value="" placeholder="<?= ($userId == -1)?'输入用户名,条形码,图书名查找':'输入条形码,图书名查找'?>" />
+				<input type="text" name="query" id="query" value="<?=!empty($query) ? $query : '' ?>" placeholder="<?= ($userId == -1)?'输入用户名,条形码,图书名查找':'输入条形码,图书名查找'?>" />
 			</div>
 		    <div class="col-12">
     			<select name="status">
@@ -16,11 +16,11 @@
 			</div>
 			<div class="col-6 col-12-mobilep">
 				<label>在此后借阅</label>
-        		<input type="date" name="borrowAfter" placeholder="此后借阅" value="<?=!empty($borrowAfter) ? $borrowAfter : '' ?>">
+        		<input type="date" name="after" placeholder="此后借阅" value="<?=!empty($after) ? $after : '' ?>">
 			</div>			
 			<div class="col-6 col-12-mobilep">
 				<label>在此前借阅</label>
-        		<input type="date" name="borrowBefore" placeholder="此前借阅" value="<?=!empty($borrowBefore) ? $borrowBefore : ''?>">
+        		<input type="date" name="before" placeholder="此前借阅" value="<?=!empty($before) ? $before : ''?>">
 			</div>
 		    <div class="col-12">
 		    	<hr>

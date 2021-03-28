@@ -104,7 +104,7 @@ require_once 'blocks/borrowQueryBlock.php';
 ?>
 
 <section class="box">
-	<h3>分类列表</h3>
+	<h3>借阅列表</h3>
 	<div class="table-wrapper">
 		<table class="alt">
 			<thead>

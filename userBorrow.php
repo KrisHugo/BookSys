@@ -17,7 +17,6 @@ if (!empty($_GET['lost'])){
     }
 } else if (!empty($_GET['unlost'])){
     $sql = "UPDATE borrow SET status = 'normal' WHERE id = ".$_GET['unlost'];
-    $conn->query($sql);
     if ($conn->query($sql)){
         $msg = "丢失申请已撤销";
     }else {
@@ -44,7 +43,7 @@ require_once 'blocks/borrowBlock.php';
 				<section id="main" class="container">
 					<?php require_once 'blocks/borrowQueryBlock.php';?>
                     <section class="box">
-                    	<h3>分类列表</h3>
+                    	<h3>借阅列表</h3>
                     	<div class="table-wrapper">
                     		<table class="alt">
                     			<thead>
