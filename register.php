@@ -54,7 +54,7 @@ $params = require_once 'static/loginParams.php';
 			<hr>
 			<button class="btn btn-lg btn-primary btn-block btnPlus" type="submit">注册</button>
 			<a class="btn btn-lg btn-block btn-info btnPlus" href="login.php">返回登陆</a>
-			<p class="mt-5 mb-3 text-muted">&copy; 作业人: 黄文翔 201741402221   项目: 图书借阅管理系统</p>
+            <p class="mt-5 mb-3 text-muted">&copy;KrisHugo  书语——智能图书馆系统</p>
 		</form>
 	</body>
 

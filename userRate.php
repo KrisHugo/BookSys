@@ -4,19 +4,22 @@
  *  */
 $params = require 'static/rateParams.php';
 $pageType = 'user';
+
 require_once "app/conn.php";//打开数据库连接
 require_once 'utils/functions.php';
+require_once 'blocks/rateBlock.php';
 ///* 删除和修改 */
 if (!empty($_GET['delete'])){
-    $sql = "DELETE FROM book_rate WHERE userId = ". $_SESSION['account']['user_id'] ." AND id = ".$_GET['lost'];//需要做权限判定
+    $sql = "DELETE FROM book_rate WHERE userId = $userId AND id = ".$_GET['delete'];//需要做权限判定
     if ($conn->query($sql)){
         $msg = "删除成功";
+        header("Location: userRate.php?id=$userId");//进行跳转, 防止用户手动刷新导致误操作
     }else {
         header("Location: error.php?error=删除评价失败");
         exit;
     }
 }
-//} else if (!empty($_GET['unlost'])){
+//else if (!empty($_GET['unlost'])){
 //    $sql = "UPDATE borrow SET status = 'normal' WHERE id = ".$_GET['unlost'];
 //    $conn->query($sql);
 //    if ($conn->query($sql)){
@@ -26,7 +29,6 @@ if (!empty($_GET['delete'])){
 //        exit;
 //    }
 //}
-require_once 'blocks/rateBlock.php';
 ?>
 <!DOCTYPE HTML>
 <html>
@@ -80,11 +82,11 @@ require_once 'blocks/rateBlock.php';
                                         <div class="media-left">
                                             <h5 class="media-heading">评价时间: <?= $v['created'] ?></h5>
                                         </div>
-                                        <?php if ($_GET['id'] == $_SESSION['account']['user_id']):?>
+                                        <?php if ($_GET['id'] == $userId):?>
                                         <div class="media-left">
                                             <h5 class="media-heading" style="color:red">评论状态: <?= $params['rateStatus'][$v['status']] ?></h5>
                                         </div>
-                                        <a class="button special fit" href="<?='userRate.php?delete='.$v['id']?>">删除评论</a>
+                                        <a class="button special fit" href='<?="userRate.php?id=$userId&delete=".$v['id']?>'>删除评论</a>
                                         <?php endif; ?>
                                     </div>
                                     <hr/>

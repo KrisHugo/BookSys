@@ -9,6 +9,6 @@
 		<li><a href="#" class="icon brands fa-google-plus"><span class="label">Google+</span></a></li>
 	</ul>
 	<ul class="copyright">
-		<li>&copy; KrisHugo</li><li>项目: 图书借阅管理系统</li>
+		<li>&copy; KrisHugo</li><li>项目: 书语——智能图书馆系统</li>
 	</ul>
 </footer>

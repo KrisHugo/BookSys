@@ -6,11 +6,17 @@ $params = require 'static/borrowParams.php';
 $pageType = 'user';
 require_once "app/conn.php";//打开数据库连接
 require_once 'utils/functions.php';
+require_once 'blocks/borrowBlock.php';
 /* 丢失申请和撤销丢失申请 */
-if (!empty($_GET['lost'])){
+
+if (!empty($_GET['rate'])){
+    $msg = "测试评价操作";
+}
+else if (!empty($_GET['lost'])){
     $sql = "UPDATE borrow SET status = 'lost' WHERE id = ".$_GET['lost'];
     if ($conn->query($sql)){
         $msg = "丢失申请已发出";
+        header("Location: userBorrow.php?id=$userId");
     }else {
         header("Location: error.php?error=丢失申请失败");
         exit;
@@ -19,12 +25,12 @@ if (!empty($_GET['lost'])){
     $sql = "UPDATE borrow SET status = 'normal' WHERE id = ".$_GET['unlost'];
     if ($conn->query($sql)){
         $msg = "丢失申请已撤销";
+        header("Location: userBorrow.php?id=$userId");
     }else {
         header("Location: error.php?error=撤销丢失申请失败");
         exit;
     }
 }
-require_once 'blocks/borrowBlock.php';
 ?>
 <!DOCTYPE HTML>
 <html>
@@ -78,13 +84,14 @@ require_once 'blocks/borrowBlock.php';
                                 		<td><?=(empty($v["returnDate"]) && $v['status'] == 'normal') ? '在借' : $params['bookStatus'][$v['status']] ?></td>
                                 		<td>
                                             <!-- 功能按钮 -->
+                                            <!--评价功能应该是弹窗，而非链接跳转，否则会及其不方便-->
                                             <!-- 当该书已被用户借出过，且已经还回过（即有阅读记录了），且未被评价过，则允许用户进行读书笔记/评价的新增
                                              操作 -->
                                             <?php if ($v['returnDate']  && $v['status'] == 'normal' /*需要判定有无被评价*/):?>
-                                            <a href="<?= 'userBorrow.php?lost='.$v['id'] ?>">评价</a>
+                                            <a href="<?= 'userBorrow.php?rate='.$v['id'] ?>">评价</a>
                                                 <!-- 当该书已被用户借出过，且已经还回过（即有阅读记录了），但该书已经被评价过了，则允许用户进行 读书笔记/评价的修改 操作 -->
                                             <?php elseif ($v['returnDate']  && $v['status'] == 'normal' /*需要判定有无被评价*/):?>
-                                            <a href="<?= 'userBorrow.php?lost='.$v['id'] ?>">修改评价</a>
+                                            <a href="<?= 'userBorrow.php?rate='.$v['id'] ?>">修改评价</a>
                                             <!-- 当该书已被用户借出过，但还未还回时，允许用户进行 丢失申报 操作 -->
                                 			<?php elseif (empty($v['returnDate'])  && $v['status'] == 'normal'):?>
                                 			<a href="<?= 'userBorrow.php?lost='.$v['id'] ?>">丢失</a>

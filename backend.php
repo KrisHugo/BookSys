@@ -39,6 +39,7 @@ $params = require_once './static/backendParams.php';
         					        case "update": require_once "./includes/update.php"; break;
         					        case "category": require_once "./includes/category.php"; break;
         					        case "borrow": require_once "./includes/borrow.php"; break;
+                                    case "rate": require_once "./includes/rate.php"; break;
         					        case "users": require_once "./includes/users.php"; break;
         					        case "list": default: require_once "./includes/list.php"; break;
         					    }?>
