@@ -8,6 +8,7 @@
 		    <div class="col-12">
     			<select name="status">
     	    		<option value="">--请选择图书状态--</option>
+                    <option value="quest" <?=(!empty($status) ? ( $status == 'quest' ? "selected": "") : "") ?>>请求借阅</option
     	    		<option value="stored" <?=(!empty($status) ? ( $status == 'stored' ? "selected": "") : "") ?>>已还</option>
     	    		<option value="borrow" <?=(!empty($status) ? ( $status == 'borrow' ? "selected": "") : "") ?>>在借</option>
     	    		<option value="defaulted" <?=(!empty($status) ? ( $status == 'defaulted' ? "selected": "") : "") ?>>逾期</option>

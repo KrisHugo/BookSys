@@ -62,7 +62,7 @@ else if(!empty($_GET['continue'])){
     if ($result && $result->num_rows > 0) {
         $book = mysqli_fetch_assoc($result);
         $uniqueCode = $book['uniqueCode'];
-        $bookId = $book['id'];
+        $bookId = $book['bookId'];
         $userId = $book['userId'];
         if (!continueBorrow($conn, $bookId, $userId, $borrowId, $uniqueCode, $handlerId)){
             header("Location: error.php?error=数据库操作续借失败");

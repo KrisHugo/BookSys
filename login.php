@@ -3,7 +3,7 @@
 $params = require_once 'static/loginParams.php';
 ?>
 <!DOCTYPE html>
-<<html>
+<html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -32,7 +32,7 @@ $params = require_once 'static/loginParams.php';
 			<a class="hrefBtn" href="register.php">
 				<button class="btn btn-lg btn-primary btn-block btnPlus" type="button">注册</button>
 			</a>
-			<p class="mt-5 mb-3 text-muted">&copy;KrisHugo  书语——智能图书馆系统</p>
+			<p class="mt-5 mb-3 text-muted">&copy;黄文翔  基于用户借阅记录的协同过滤图书推荐借阅系统的设计与实现</p>
 		</form>
 	</body>
 

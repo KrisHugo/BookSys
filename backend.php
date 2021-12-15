@@ -4,7 +4,7 @@ if(empty($_SESSION['account']['user_id']) ||  $_SESSION['account']['user_authori
     exit;
 }
 $pageType = 'admin';
-require "app/conn.php";
+require_once "app/conn.php";
 $command = !empty($_GET['ctr']) ? $_GET['ctr'] : 'list';
 $url = "./includes/app/". $command .".php";
 require_once './utils/functions.php';
@@ -31,21 +31,21 @@ $params = require_once './static/backendParams.php';
             </section>
 			<!-- Main -->
 			<!-- 此处用于添加被选中的功能选单 -->
-				<section id="main" class="container">
-					<div class="row">
-    					<div class="col-12">
-    					<?php switch ($command){
-        					        case "add": require_once "./includes/add.php"; break;
-        					        case "update": require_once "./includes/update.php"; break;
-        					        case "category": require_once "./includes/category.php"; break;
-        					        case "borrow": require_once "./includes/borrow.php"; break;
-                                    case "rate": require_once "./includes/rate.php"; break;
-        					        case "users": require_once "./includes/users.php"; break;
-        					        case "list": default: require_once "./includes/list.php"; break;
-        					    }?>
-    					</div>
-					</div>
-				</section>
+            <section id="main" class="container">
+                <div class="row">
+                    <div class="col-12">
+                    <?php switch ($command){
+                                case "add": require_once "./includes/add.php"; break;
+                                case "update": require_once "./includes/update.php"; break;
+                                case "category": require_once "./includes/category.php"; break;
+                                case "borrow": require_once "./includes/borrow.php"; break;
+                                case "rate": require_once "./includes/rate.php"; break;
+                                case "users": require_once "./includes/users.php"; break;
+                                case "list": default: require_once "./includes/list.php"; break;
+                            }?>
+                    </div>
+                </div>
+            </section>
 			<?php require_once './blocks/footer.php';?>
 		</div>
 <?php require_once './blocks/script.php';?>

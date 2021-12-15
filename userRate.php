@@ -2,13 +2,13 @@
 /*
  * 本页面用于实现用户对个人借阅记录的查看
  *  */
-$params = require 'static/rateParams.php';
+$params = require_once 'static/rateParams.php';
 $pageType = 'user';
 
 require_once "app/conn.php";//打开数据库连接
 require_once 'utils/functions.php';
 require_once 'blocks/rateBlock.php';
-///* 删除和修改 */
+// 删除
 if (!empty($_GET['delete'])){
     $sql = "DELETE FROM book_rate WHERE userId = $userId AND id = ".$_GET['delete'];//需要做权限判定
     if ($conn->query($sql)){
@@ -19,16 +19,6 @@ if (!empty($_GET['delete'])){
         exit;
     }
 }
-//else if (!empty($_GET['unlost'])){
-//    $sql = "UPDATE borrow SET status = 'normal' WHERE id = ".$_GET['unlost'];
-//    $conn->query($sql);
-//    if ($conn->query($sql)){
-//        $msg = "丢失申请已撤销";
-//    }else {
-//        header("Location: error.php?error=撤销丢失申请失败");
-//        exit;
-//    }
-//}
 ?>
 <!DOCTYPE HTML>
 <html>

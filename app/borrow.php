@@ -12,11 +12,11 @@ $userId = $_SESSION['account']['user_id'];
 $result = $conn->query("SELECT * FROM reader r, accounts a WHERE r.id = a.id AND a.id = $userId AND r.readerID IS NOT NULL AND a.status = 'access'");
 if ($result->num_rows > 0) {
     /* 查找有无该图书 */
-    $sql = "SELECT * FROM book_detail WHERE uniqueCode=$uniqueCode AND status = 'stored'";
+    $sql = "SELECT * FROM book_detail WHERE uniqueCode = '$uniqueCode' AND status = 'stored'";
     $result = $conn->query($sql);
     if ($result->num_rows > 0) {
         /* 发送借阅请求 */
-        $sql = "INSERT INTO borrow (`bookId`, `userId`, `uniqueCode`, `status`) VALUES ($bookId,$userId,$uniqueCode,'quest')";
+        $sql = "INSERT INTO borrow (`bookId`, `userId`, `uniqueCode`, `status`) VALUES ($bookId, $userId, '$uniqueCode','quest')";
         if ($conn->query($sql)){
             header("Location: ../userBorrow.php?id=".$userId);
             exit;

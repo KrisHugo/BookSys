@@ -2,13 +2,12 @@
 /*
  * 本页面用于实现用户对个人借阅记录的查看
  *  */
-$params = require 'static/borrowParams.php';
+$params = require_once 'static/borrowParams.php';
 $pageType = 'user';
 require_once "app/conn.php";//打开数据库连接
 require_once 'utils/functions.php';
 require_once 'blocks/borrowBlock.php';
 /* 丢失申请和撤销丢失申请 */
-
 if (!empty($_GET['rate'])){
     $msg = "测试评价操作";
 }
@@ -88,10 +87,10 @@ else if (!empty($_GET['lost'])){
                                             <!-- 当该书已被用户借出过，且已经还回过（即有阅读记录了），且未被评价过，则允许用户进行读书笔记/评价的新增
                                              操作 -->
                                             <?php if ($v['returnDate']  && $v['status'] == 'normal' /*需要判定有无被评价*/):?>
-                                            <a href="<?= 'userBorrow.php?rate='.$v['id'] ?>">评价</a>
+                                            <a href="<?= 'book.php?book_id='.$v['bookId'] ?>">评价</a>
                                                 <!-- 当该书已被用户借出过，且已经还回过（即有阅读记录了），但该书已经被评价过了，则允许用户进行 读书笔记/评价的修改 操作 -->
                                             <?php elseif ($v['returnDate']  && $v['status'] == 'normal' /*需要判定有无被评价*/):?>
-                                            <a href="<?= 'userBorrow.php?rate='.$v['id'] ?>">修改评价</a>
+<!--                                            <a href="--><?//= 'userBorrow.php?rate='.$v['id'] ?><!--">修改评价</a>-->
                                             <!-- 当该书已被用户借出过，但还未还回时，允许用户进行 丢失申报 操作 -->
                                 			<?php elseif (empty($v['returnDate'])  && $v['status'] == 'normal'):?>
                                 			<a href="<?= 'userBorrow.php?lost='.$v['id'] ?>">丢失</a>
@@ -106,7 +105,7 @@ else if (!empty($_GET['lost'])){
                     		</table>
                     	</div>
                     </section>
-					<?php $pageUrl = 'userBorrow.php?' ?>
+					<?php $pageUrl = "userBorrow.php?id=$userId&" ?>
 					<?php require_once 'blocks/pageBlock.php';?>
 				</section>
 			<?php require_once 'blocks/footer.php';?>

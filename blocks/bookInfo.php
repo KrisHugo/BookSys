@@ -51,7 +51,7 @@
                 </table>
             </div>
         </div>
-        <?php if ($_SESSION['account']['user_authority'] == 'admin'): ?>
+        <?php if (isset($_SESSION['account']['user_authority']) and $_SESSION['account']['user_authority'] == 'admin'): ?>
             <ul class="actions special">
                 <li><a href="<?= 'backend.php?ctr=update&update=' . $book['id'] ?>"
                        class="button special small fit alt">修改</a></li>

@@ -9,6 +9,6 @@
 		<li><a href="#" class="icon brands fa-google-plus"><span class="label">Google+</span></a></li>
 	</ul>
 	<ul class="copyright">
-		<li>&copy; KrisHugo</li><li>项目: 书语——智能图书馆系统</li>
+		<li>&copy; KrisHugo</li><li>项目: 基于用户借阅记录的协同过滤图书推荐借阅系统的设计与实现</li>
 	</ul>
 </footer>

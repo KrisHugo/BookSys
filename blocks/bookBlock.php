@@ -3,6 +3,8 @@
 	<section class="box special">
 		<span class="image featured"><img src="images/pic01.jpg" alt="" /></span>
 		<h3><?=$book['name']?></h3>
+        <h4>评分: <?=round($book['rating'], 2)?></h4>
+        <br/>
 		<p class="rowAutoCollapse" style="text-align: left; float: left;"><?=$book['press']?></p>
 		<p class="rowAutoCollapse" style="text-align: right; float: right;"><?=$book['author']?></p>
 		<p class="textAutoCollapse"><?=$book['desc']?></p>

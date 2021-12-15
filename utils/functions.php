@@ -12,16 +12,12 @@ function indexArrayToRelatedArray(array $array, $indexName)
         if (!is_numeric($key)) {
             continue;
         }
-
         $index = '';
-
-
         if (is_array($value) && isset($value[$indexName]) && !empty($value[$indexName])) {
             $index = $value[$indexName];
         } elseif (is_object($value) && isset($value->$indexName) && !empty($value->$indexName)) {
             $index = $value->$indexName;
         }
-
         // 重复的将被后面覆盖
         if (!empty($index)) {
             $data[$index] = $value;
@@ -160,6 +156,7 @@ function getUsers($conn, $pageType, $page, $pageSize, &$maxPage)
     $where = "WHERE (1 = 1 "
         . (!empty($query) ? " AND (username Like '%" . $query . "%' OR account Like '%" . $query . "%')" : "")
         . (!empty($authority) ? " AND authority = '" . $authority . "'" : "")
+        . (!empty($status) ? " AND `status` = '$status'" : "")
         . ")";
     /* 获取账户 */
     $accountResult = $conn->query("SELECT * FROM accounts " . $where . " ORDER BY id");
@@ -171,26 +168,32 @@ function getUsers($conn, $pageType, $page, $pageSize, &$maxPage)
     $readerIds = implode(",", $totalIds);
     $where = "WHERE id IN (" . $readerIds . ") ";
     /* 关键词查询 */
-    $where .= (!empty($query) ? " AND (name Like '%" . $query . "%' OR readerID Like '%" . $query . "%' OR studentID Like '%" . $query . "%')" : "");
+    $where .= (!empty($query) ? " AND (name Like '%$query%' OR readerID Like '%$query%' OR studentID Like '%$query%')" : "");
     /* 查询学院 */
-    $where .= (!empty($college) ? " AND college = '" . $college . "'" : "");
-    /* 查询状态 */
-    $where .= !empty($status) ? " AND status = '" . $status . "'" : "";
+    $where .= (!empty($college) ? " AND college = '$college'" : "");
+//    /* 查询状态 */
+//    $where .= !empty($status) ? " AND `status` = '$status'" : "";
     /* 获取读者信息 */
     $readerResult = $conn->query("SELECT * FROM reader " . $where . " ORDER BY id " . ("LIMIT " . ($page - 1) * $pageSize . "," . $pageSize));
-
-    $readers = mysqli_fetch_all($readerResult, MYSQLI_ASSOC);
-    /* 生成用户 */
-    $validReaders = indexArrayToRelatedArray($readers, "id");
-    $validAccounts = indexArrayToRelatedArray($accounts, "id");
     $users = [];
-    foreach ($validReaders as $k => $v) {
-        $users[$k] = array_merge($validAccounts[$k], $v);
+    if ($readerResult != false){
+        $readers = mysqli_fetch_all($readerResult, MYSQLI_ASSOC);
+        /* 生成用户 */
+        $validReaders = indexArrayToRelatedArray($readers, "id");
+        $validAccounts = indexArrayToRelatedArray($accounts, "id");
+        foreach ($validReaders as $k => $v) {
+            $users[$k] = array_merge($validAccounts[$k], $v);
+        }
+    }
+    $pageResult = $conn->query("SELECT (COUNT(1) / " . $pageSize . ") `pages` FROM reader " . $where);
+    if ($pageResult!=false){
+        $pageInfo = mysqli_fetch_assoc($pageResult);
+        $maxPage = ceil($pageInfo['pages']);
+    }
+    else{
+        $maxPage = 1;
     }
 
-    $pageResult = $conn->query("SELECT (COUNT(1) / " . $pageSize . ") `pages` FROM reader " . $where);
-    $pageInfo = mysqli_fetch_assoc($pageResult);
-    $maxPage = ceil($pageInfo['pages']);
     return $users;
 }
 
@@ -301,12 +304,6 @@ function getBorrows($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 
         }
         //通过输入值查询是否是book.
         $where .= bookQueryByKeyword($conn, $query);
-//        $bookResult = $conn->query("SELECT * FROM book_info WHERE name LIKE '%" . $query . "%'");
-//        if ($bookResult != false) {
-//            $bookIds = mysqli_fetch_all($bookResult, MYSQLI_ASSOC);
-//            $bookIds = getArrays($bookIds, "id");
-//            $where .= (!empty($bookIds) ? "OR bookId IN (" . implode(",", $bookIds) . ") " : "");
-//        }
         if ($userId == -1) {
             //通过输入值查询是否是user.
             $userResult = $conn->query("SELECT * FROM reader WHERE name LIKE '%" . $query . "%'");
@@ -327,6 +324,9 @@ function getBorrows($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 
     //通过输入值查询期限
     if (!empty($status)) {
         switch ($status) {
+            case 'quest':
+                $where .= " AND status = 'quest'";
+                break;
             case 'stored':
                 $where .= " AND returnDate IS NOT NULL AND status = 'normal'";
                 break;
@@ -341,7 +341,8 @@ function getBorrows($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 
                 break;
         }
     }
-    $sql = "SELECT * FROM borrow $where LIMIT " . (($page - 1) * $pageSize) .", $pageSize;";
+    $order = "ORDER BY borrowDate DESC, returnDate DESC";
+    $sql = "SELECT * FROM borrow $where $order LIMIT " . (($page - 1) * $pageSize) .", $pageSize;";
     $borrowResult = $conn->query($sql);
     $borrows = mysqli_fetch_all($borrowResult, MYSQLI_ASSOC);
 
@@ -412,7 +413,7 @@ function getRates($conn, $userId, $page, $pageSize, &$maxPage, $defaultTime = 25
                 break;
         }
     }
-    $sql = "SELECT * FROM book_rate $where LIMIT " . (($page - 1) * $pageSize) .", $pageSize;";
+    $sql = "SELECT * FROM book_rate $where ORDER BY created DESC LIMIT " . (($page - 1) * $pageSize) .", $pageSize;";
     $rateResult = $conn->query($sql);
     $rates = mysqli_fetch_all($rateResult, MYSQLI_ASSOC);
 
@@ -459,7 +460,7 @@ function allowBorrow($conn, $bookId, $borrowId, $uniqueCode, $handlerId)
 {
     $time = date("Y-m-d", time());
     // 修改图书记录
-    $sql1 = "UPDATE book_detail SET status = 'borrowed' WHERE uniqueCode= $uniqueCode";
+    $sql1 = "UPDATE book_detail SET status = 'borrowed' WHERE uniqueCode= '$uniqueCode'";
     // 图书存数减少
     $sql2 = "UPDATE book_info SET count = count - 1 WHERE id = $bookId";
     // 修该借书记录
@@ -515,7 +516,7 @@ function deleteBorrow($conn, $borrowId)
 function returnBorrow($conn, $borrowId, $bookId, $uniqueCode, $handlerId)
 {
     $time = date("Y-m-d", time());
-    $bookDetailSql = "UPDATE book_detail SET status = 'stored' WHERE id = " . $bookId . " AND uniqueCode = $uniqueCode";
+    $bookDetailSql = "UPDATE book_detail SET status = 'stored' WHERE id = " . $bookId . " AND uniqueCode = '$uniqueCode'";
     $bookInfoSql = "UPDATE book_info SET count = count + 1 WHERE id = " . $bookId;
     $borrowSql = updateBorrow($time, $handlerId, $borrowId, $uniqueCode);
     $SQLs = [$bookDetailSql, $bookInfoSql, $borrowSql];
@@ -548,7 +549,7 @@ function updateBorrow($time, $handlerId, $borrowId, $uniqueCode)
     return "UPDATE borrow SET `status` = ( CASE "
         . "WHEN UNIX_TIMESTAMP(borrowDate) >= " . (time() - 2592000) . " THEN 'normal'"
         . "WHEN UNIX_TIMESTAMP(borrowDate) < " . (time() - 2592000) . " THEN 'defaulted'"
-        . "END), `returnDate` = '$time', `returnHandlerId` = $handlerId  WHERE id = $borrowId AND uniqueCode = $uniqueCode";
+        . "END), `returnDate` = '$time', `returnHandlerId` = $handlerId  WHERE id = $borrowId AND uniqueCode = '$uniqueCode'";
 }
 
 /**
@@ -563,7 +564,7 @@ function updateBorrow($time, $handlerId, $borrowId, $uniqueCode)
 function insertBorrow($time, $bookId, $userId, $uniqueCode, $handlerId)
 {
     return "INSERT INTO borrow (`borrowDate`, `bookId`, `userId`, `uniqueCode`, `status`, `borrowHandlerId`) VALUES "
-        . "('$time',$bookId,$userId,$uniqueCode,'normal',$handlerId)";
+        . "('$time',$bookId,$userId,'$uniqueCode','normal',$handlerId)";
 }
 
 /**
@@ -683,11 +684,13 @@ function insertBookInfo($name, $press, $press_time, $author, $price, $ISBN, $des
  */
 function insertBookDetail($bookId, $details)
 {
-    $sql = "INSERT INTO book_detail (`id`) VALUES ";
+    $sql = "INSERT INTO book_detail (`id`, `uniqueCode`) VALUES ";
     for ($i = 0; $i < ($details - 1); $i++) {
-        $sql .= "($bookId),";
+        $unique = substr(md5(uniqid()), 0, 11);
+        $sql .= "($bookId, '$unique'),";
     }
-    $sql .= "($bookId);";
+    $unique = substr(md5(uniqid()), 0, 11);
+    $sql .= "($bookId, '$unique');";
     return $sql;
 }
 
@@ -712,7 +715,7 @@ function updateBook($conn, $name, $bookId, $press, $press_time, $author, $price,
 {
     $SQLs = [];
     if (sizeof($deletes) > 0) {
-        $deleteDetailSql = "DELETE FROM book_detail WHERE uniqueCode IN (" . implode(",", $deletes) . ")";
+        $deleteDetailSql = "DELETE FROM book_detail WHERE uniqueCode IN ('" . implode("','", $deletes) . "')";
         $SQLs[] = $deleteDetailSql;
     }
     //批量插入数目信息

@@ -72,17 +72,55 @@
 				
 				<section class="box special">				
 					<h2>下面是部分优质图书展示</h2>
+                    <h5>基于图书热门程度以及用户相似度进行推荐图书</h5>
 				</section>
 				<!-- 用于展示图书 -->
                 <div class="row">
-                <?php $searchBlock = "WHERE 1 = 1 ".
-                					(empty($_GET['search']) ? "" : " AND name LIKE '%" . $_GET['search'] . "%'") .
-                					(empty($_GET['category'])? "" : " AND category = '" . $_GET['category'] . "'");
-                	$bookResult = $conn->query("SELECT * FROM book_info " . $searchBlock);
-                	$bookCount = 0;
-                	while (++$bookCount <= 4 && ($book = mysqli_fetch_assoc($bookResult))):
-				       require './blocks/bookBlock.php';
-                	endwhile;?>
+                <!-- 通过Python获取数据-->
+                <?php
+                    if (isset($_SESSION['account']['user_id'])):
+                        $userId = $_SESSION['account']['user_id'];
+                        exec("python ./Complex-User-CF.py {$userId}", $output, $return_val);
+                        if(isset($output[0]) && $output[0] != "[]"):
+                            $bookIds = explode("', '",trim(rtrim(ltrim($output[0], "["), "]"), "'"));
+                            $bookIdsStr = join(",", $bookIds);
+                            $sql = "SELECT * FROM book_info WHERE id IN ($bookIdsStr)";
+                            $bookResult = $conn->query($sql);
+                            if ($bookResult != false):
+                                foreach(mysqli_fetch_all($bookResult, MYSQLI_ASSOC) as $book):
+                                    require './blocks/bookBlock.php';
+                                endforeach;
+                            else:
+                                print_r($output);
+                                print_r($bookResult);
+                                print_r("获取推荐图书错误");
+                            endif;
+                        else:
+                            $searchBlock = "WHERE 1 = 1 ".
+                                (empty($_GET['search']) ? "" : " AND name LIKE '%" . $_GET['search'] . "%'") .
+                                (empty($_GET['category'])? "" : " AND category = '" . $_GET['category'] . "'");
+                            $orderBlock = "ORDER BY rating DESC";
+                            $limitBlock = "LIMIT 4";
+                            $bookResult = $conn->query("SELECT * FROM book_info " . $searchBlock . " " . $orderBlock);
+                            $bookCount = 0;
+                            while (++$bookCount <= 4 && ($book = mysqli_fetch_assoc($bookResult))):
+                                require './blocks/bookBlock.php';
+                            endwhile;
+                        endif;
+
+                    else:
+                        $searchBlock = "WHERE 1 = 1 ".
+                            (empty($_GET['search']) ? "" : " AND name LIKE '%" . $_GET['search'] . "%'") .
+                            (empty($_GET['category'])? "" : " AND category = '" . $_GET['category'] . "'");
+                        $orderBlock = "ORDER BY rating DESC";
+                        $limitBlock = "LIMIT 4";
+                        $bookResult = $conn->query("SELECT * FROM book_info " . $searchBlock . " " . $orderBlock);
+                        $bookCount = 0;
+                        while (++$bookCount <= 4 && ($book = mysqli_fetch_assoc($bookResult))):
+                            require './blocks/bookBlock.php';
+                        endwhile;
+                    endif;
+                	?>
                 </div>
 			</section>
 		<?php require_once './blocks/footer.php';?>

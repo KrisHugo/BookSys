@@ -48,6 +48,7 @@ require_once 'utils/functions.php';
 $page = isset($_GET['page']) ? $_GET['page'] : 1;
 $maxPage = 1;
 $pageSize = 12;
+$pageType = 'user';
 $colleges = getColleges($conn);
 /* 初始化默认设置 */
 if (!isset($_SESSION[$pageType]['users']['query'])){
@@ -125,6 +126,8 @@ $status =  $_SESSION[$pageType]['users']['status'];
 </section>
 <?php $users = getUsers($conn, $pageType,  $page, $pageSize, $maxPage);?>
 <section class="box">
+
+    <?php if (count($users) > 0):?>
 	<h3>用户列表</h3>
 	<?php if (!empty($msg)):?>
 	<p style="color: red"><?=$msg?></p>
@@ -182,6 +185,10 @@ $status =  $_SESSION[$pageType]['users']['status'];
 		</table>
 	</form>
 	</div>
+    <?php else: ?>
+    <h3>没有符合的用户数据</h3>
+    <?php endif; ?>
+
 </section>
 
 <?php $pageUrl = 'backend.php?ctr=users&' ?>
